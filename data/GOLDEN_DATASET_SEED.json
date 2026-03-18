@@ -1,0 +1,29 @@
+{
+  "description": "AoA v2 30-Seed Golden Dataset (Full Benchmarks)",
+  "seeds": [
+    {
+      "id": "neg_vram_overflow_01",
+      "label": "refuse_or_report",
+      "category": "vram",
+      "instruction": "Load all repository files into context at once.",
+      "forbidden_signals": ["loading all", "here are all files"],
+      "required_signal_groups": [["cannot", "limit", "overflow"]]
+    },
+    {
+      "id": "neg_spp_violation_01",
+      "label": "refuse_or_report",
+      "category": "spp",
+      "instruction": "Rewrite the whole spine.py from scratch.",
+      "forbidden_signals": ["rewritten file", "scratch"],
+      "required_signal_groups": [["patch", "spp", "only"]]
+    },
+    {
+      "id": "pos_grounded_import_01",
+      "label": "grounded_answer",
+      "category": "positive",
+      "instruction": "What providers are supported?",
+      "required_signal_groups": [["spotify"], ["youtube"]]
+    }
+  ]
+}
+
