@@ -27,6 +27,8 @@ Start with these docs:
 - [System Architecture](C:\Users\speci.000\Documents\AoA-v2-Surgical-Spine\docs\SYSTEM_ARCHITECTURE.md)
 - [Roadmap](C:\Users\speci.000\Documents\AoA-v2-Surgical-Spine\docs\ROADMAP.md)
 - [Implementation Order](C:\Users\speci.000\Documents\AoA-v2-Surgical-Spine\docs\IMPLEMENTATION_ORDER.md)
+- [System Card](C:\Users\speci.000\Documents\AoA-v2-Surgical-Spine\docs\SYSTEM_CARD.md)
+- [Evaluation Card](C:\Users\speci.000\Documents\AoA-v2-Surgical-Spine\docs\EVALUATION_CARD.md)
 
 ## Current Repository Surface
 
@@ -50,9 +52,18 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e .[dev]
 python boot_system.py
-python -m core.cli build-index --repo-root .
-python -m core.cli director-run --request-text "What providers are supported?"
+.\aoa-spine.ps1 build-index --repo-root . --reset
+.\aoa-spine.ps1 director-run --request-text "What providers are supported?" --plan-type code_lookup --embedding-backend hash --trace
+.\aoa-spine.ps1 eval-report
 python -m pytest -q
+```
+
+## One-Minute Verification
+
+```powershell
+.\aoa-spine.ps1 build-index --repo-root . --reset
+.\aoa-spine.ps1 director-run --request-text "How does the budget strategy work?" --plan-type code_lookup --embedding-backend hash --hardware-profile 8gb --trace
+.\aoa-spine.ps1 eval-report
 ```
 
 ## Current Status
@@ -61,8 +72,9 @@ The repository is validated as a runnable baseline, not yet as a production
 claim:
 
 - `python boot_system.py`
-- `python -m core.cli build-index --repo-root .`
-- `python -m core.cli director-run --request-text "What providers are supported?"`
+- `.\aoa-spine.ps1 build-index --repo-root . --reset`
+- `.\aoa-spine.ps1 director-run --request-text "What providers are supported?" --plan-type code_lookup --embedding-backend hash`
+- `.\aoa-spine.ps1 eval-report`
 - `python -m pytest -q`
 
 ## Current Limits

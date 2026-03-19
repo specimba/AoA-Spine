@@ -5,6 +5,7 @@ from core.brain_eval import run_golden_eval
 from core.brain_ingest import build_documents
 from core.brain_store import BrainDocument, BrainStore, BrainStoreConfig
 from core.director_bridge import run_director_cycle
+from core.eval_runner import run_repo_eval
 from core.embedder import HashingEmbedder
 from core.vram_optimizer import VRAMOptimizer
 
@@ -21,6 +22,7 @@ def test_director_cycle_returns_no_evidence_for_empty_store(tmp_path: Path):
     assert result["status"] == "NO_EVIDENCE"
     assert result["telemetry"]["evidence_count"] == 0
     assert "trace" in result
+    assert result["packet"]["evidence_sufficient"] is False
 
 
 def test_director_cycle_returns_success_with_trace(tmp_path: Path):
@@ -38,6 +40,8 @@ def test_director_cycle_returns_success_with_trace(tmp_path: Path):
     assert result["evidence_count"] > 0
     assert result["telemetry"]["retrieval_executed"] is True
     assert result["trace"]["preflight"]["budget"]["safety_gate"] is True
+    assert result["packet"]["ownership_locked"] is True
+    assert result["packet"]["primary_owner"] == result["packet"]["target_lane"]
 
 
 def test_director_cycle_preflight_refuses_oversized_request(tmp_path: Path):
@@ -127,3 +131,17 @@ def test_execute_retrieval_plan_prefers_relevant_code_chunk(tmp_path: Path):
 
     assert results
     assert results[0]["document"].source_path == "core/providers.py"
+
+
+def test_eval_runner_produces_summary(tmp_path: Path):
+    store = BrainStore(BrainStoreConfig(db_path=tmp_path))
+    docs = build_documents(Path(__file__).resolve().parents[1] / "core")
+    store.add_documents(docs[:10], reset=True)
+    report = run_repo_eval(
+        store=store,
+        dataset_path=Path(__file__).resolve().parents[1] / "data" / "GOLDEN_DATASET_SEED.json",
+        hardware_profile="8gb",
+        embedding_backend="hash",
+    )
+    assert report["report_version"] == "1.0"
+    assert "golden_eval" in report

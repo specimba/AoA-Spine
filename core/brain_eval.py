@@ -20,12 +20,15 @@ def score_response(example: dict[str, Any], response_text: str) -> dict[str, Any
 def run_golden_eval(dataset_path: Path, predictions: dict[str, str]) -> dict[str, Any]:
     with open(dataset_path, "r", encoding="utf-8") as handle:
         data = json.load(handle)
-    results = [score_response(seed, predictions.get(seed["id"], "")) for seed in data.get("seeds", [])]
+    results = [
+        {"id": seed["id"], **score_response(seed, predictions.get(seed["id"], ""))}
+        for seed in data.get("seeds", [])
+    ]
     passed = sum(1 for result in results if result["passed"])
     total = len(results)
     return {
         "total": total,
         "passed": passed,
         "pass_rate": round((passed / total) * 100, 2) if total else 0.0,
+        "results": results,
     }
-

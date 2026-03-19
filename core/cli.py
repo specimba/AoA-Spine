@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from .brain_ingest import build_documents
+from .eval_runner import run_repo_eval, write_eval_report
 from .brain_store import BrainStore, BrainStoreConfig
 from .director_bridge import run_director_cycle
 from .vram_optimizer import VRAMOptimizer
@@ -38,6 +39,15 @@ def main() -> None:
         help="Include runtime trace in the JSON output.",
     )
 
+    eval_report = subparsers.add_parser("eval-report")
+    eval_report.add_argument("--output", default="reports/eval-report.json")
+    eval_report.add_argument(
+        "--hardware-profile",
+        default="8gb",
+        choices=VRAMOptimizer.supported_profiles(),
+    )
+    eval_report.add_argument("--embedding-backend", default="hash", choices=["hash", "ollama"])
+
     args = parser.parse_args()
 
     if args.command == "build-index":
@@ -60,6 +70,18 @@ def main() -> None:
         if not args.trace:
             result = {key: value for key, value in result.items() if key != "trace"}
         print(json.dumps(result, indent=2))
+        return
+
+    if args.command == "eval-report":
+        store = BrainStore(BrainStoreConfig(db_path=Path(".brain_db")))
+        report = run_repo_eval(
+            store=store,
+            dataset_path=Path("data") / "GOLDEN_DATASET_SEED.json",
+            hardware_profile=args.hardware_profile,
+            embedding_backend=args.embedding_backend,
+        )
+        written = write_eval_report(report, Path(args.output))
+        print(json.dumps({"report_path": str(written), "summary": report}, indent=2))
         return
 
     parser.print_help()

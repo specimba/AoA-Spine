@@ -3,7 +3,7 @@ from __future__ import annotations
 from time import perf_counter
 from typing import Any
 
-from .brain_evidence import build_evidence_pack
+from .brain_evidence import build_agent_packet, build_evidence_pack
 from .brain_eval import score_response
 from .brain_retrieve import RetrievalPlan, execute_retrieval_plan
 from .brain_store import BrainStore
@@ -26,10 +26,23 @@ def run_director_cycle(store: BrainStore, request_text: str, plan_type: str, **k
     }
 
     if not preflight["budget"]["safety_gate"]:
+        packet = build_agent_packet(
+            request_text=request_text,
+            plan_type=plan_type,
+            evidence_pack={"evidence_count": 0, "sources": [], "evidence_token_count": 0},
+            owner_lane="director",
+            target_lane="director",
+            routing_reason="preflight_refusal",
+            confidence=0.0,
+            evidence_sufficient=False,
+            missing_signals=["budget_within_limits"],
+            required_followup=["reduce scope", "lower top_k", "switch hardware profile"],
+        )
         return {
             "status": "REFUSED_PRECHECK",
             "reason": "Estimated request exceeds hardware budget before retrieval.",
             "budget": preflight["budget"],
+            "packet": packet,
             "trace": trace,
             "telemetry": {
                 "phase": "preflight",
@@ -53,10 +66,23 @@ def run_director_cycle(store: BrainStore, request_text: str, plan_type: str, **k
     }
 
     if not actual_budget["safety_gate"]:
+        packet = build_agent_packet(
+            request_text=request_text,
+            plan_type=plan_type,
+            evidence_pack={"evidence_count": len(results), "sources": [], "evidence_token_count": 0},
+            owner_lane="director",
+            target_lane="director",
+            routing_reason="post_retrieval_overflow",
+            confidence=0.1,
+            evidence_sufficient=False,
+            missing_signals=["budget_within_limits"],
+            required_followup=["reduce retrieval fanout", "switch hardware profile"],
+        )
         return {
             "status": "REFUSED_OVERFLOW",
             "reason": "Hardware limits reached after retrieval sizing.",
             "budget": actual_budget,
+            "packet": packet,
             "trace": trace,
             "telemetry": {
                 "phase": "post-retrieval",
@@ -67,10 +93,25 @@ def run_director_cycle(store: BrainStore, request_text: str, plan_type: str, **k
         }
 
     if not results:
+        packet = build_agent_packet(
+            request_text=request_text,
+            plan_type=plan_type,
+            evidence_pack={"evidence_count": 0, "sources": [], "evidence_token_count": 0},
+            owner_lane="director",
+            target_lane="research",
+            routing_reason="no_evidence",
+            confidence=0.0,
+            evidence_sufficient=False,
+            missing_signals=["retrieved_grounded_sources"],
+            open_questions=["Which source files or documents should be indexed for this request?"],
+            required_followup=["index relevant sources", "refine plan type"],
+            expected_output="Gap report or refined retrieval target.",
+        )
         return {
             "status": "NO_EVIDENCE",
             "reason": "No grounded source chunks matched the request.",
             "budget": actual_budget,
+            "packet": packet,
             "trace": trace,
             "telemetry": {
                 "phase": "retrieval",
@@ -83,6 +124,21 @@ def run_director_cycle(store: BrainStore, request_text: str, plan_type: str, **k
 
     raw_answer = f"Grounded response utilizing {len(results)} source chunks."
     audit = score_response({"required_signal_groups": [["grounded"]]}, raw_answer)
+    evidence_pack = build_evidence_pack(results, top_k=top_k)
+    packet = build_agent_packet(
+        request_text=request_text,
+        plan_type=plan_type,
+        evidence_pack=evidence_pack,
+        owner_lane="director",
+        target_lane="implementation" if plan_type == "code_lookup" else "analysis",
+        routing_reason="grounded_answer_ready",
+        confidence=0.8 if audit["passed"] else 0.45,
+        evidence_sufficient=audit["passed"],
+        missing_signals=[] if audit["passed"] else ["grounding_audit_passed"],
+        open_questions=[] if audit["passed"] else ["Does the answer need more specific citations?"],
+        required_followup=[] if audit["passed"] else ["inspect top evidence pack before acting"],
+        expected_output="Grounded answer, bounded implementation note, or handoff report.",
+    )
 
     if not audit["passed"]:
         status = "MISALIGNED_AUDIT"
@@ -97,7 +153,8 @@ def run_director_cycle(store: BrainStore, request_text: str, plan_type: str, **k
         "answer": raw_answer,
         "budget": actual_budget,
         "evidence_count": len(results),
-        "evidence_pack": build_evidence_pack(results, top_k=top_k),
+        "evidence_pack": evidence_pack,
+        "packet": packet,
         "trace": trace,
         "telemetry": {
             "phase": "complete",

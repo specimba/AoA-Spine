@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from core.brain_evidence import build_evidence_pack
+from core.brain_evidence import build_agent_packet, build_evidence_pack
 from core.brain_ingest import build_documents
 from core.brain_store import BrainDocument, BrainStore, BrainStoreConfig
 
@@ -99,3 +99,28 @@ def test_build_evidence_pack_returns_basic_grounding_fields():
     assert pack["sources"][0]["source_area"] == "runtime"
     assert pack["sources"][0]["score"] == 0.875
     assert pack["sources"][0]["excerpt"] == "This is an evidence"
+
+
+def test_build_agent_packet_wraps_evidence_with_contract_fields():
+    evidence_pack = {
+        "evidence_count": 1,
+        "sources": [{"doc_id": "abc123", "source_path": "core/module.py"}],
+        "evidence_token_count": 12,
+    }
+    packet = build_agent_packet(
+        request_text="Explain the module",
+        plan_type="code_lookup",
+        evidence_pack=evidence_pack,
+        owner_lane="director",
+        target_lane="implementation",
+        routing_reason="grounded_answer_ready",
+        confidence=0.8,
+        evidence_sufficient=True,
+    )
+
+    assert packet["packet_version"] == "1.0"
+    assert packet["owner_lane"] == "director"
+    assert packet["target_lane"] == "implementation"
+    assert packet["ownership_locked"] is True
+    assert packet["evidence_sufficient"] is True
+    assert packet["evidence_count"] == 1

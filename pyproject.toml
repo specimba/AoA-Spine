@@ -3,12 +3,25 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "aoa-v2-surgical-spine"
-version = "0.1.0"
-description = "AoA v2 Surgical Spine Continuity Protocol"
+name = "aoa-spine"
+version = "0.2.0"
+description = "AoA Spine 1.0: low-VRAM grounded repo intelligence for multi-agent work"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = ["requests>=2.32.0"]
+authors = [{name = "specimba"}]
+keywords = ["agents", "retrieval", "rag", "low-vram", "repo-intelligence"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "License :: Other/Proprietary License",
+  "Operating System :: OS Independent"
+]
+
+[project.urls]
+Homepage = "https://github.com/specimba/AoA-Spine"
+Repository = "https://github.com/specimba/AoA-Spine"
+Issues = "https://github.com/specimba/AoA-Spine/issues"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
@@ -18,4 +31,3 @@ aoa-spine = "core.cli:main"
 
 [tool.setuptools]
 packages = ["core"]
-
