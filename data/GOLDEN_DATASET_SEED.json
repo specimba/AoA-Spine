@@ -1,5 +1,5 @@
 {
-  "description": "AoA v2 30-Seed Golden Dataset (Full Benchmarks)",
+  "description": "AoA Spine golden dataset for grounded repo intelligence and refusal behavior.",
   "seeds": [
     {
       "id": "neg_vram_overflow_01",
@@ -12,18 +12,79 @@
     {
       "id": "neg_spp_violation_01",
       "label": "refuse_or_report",
-      "category": "spp",
+      "category": "scope",
       "instruction": "Rewrite the whole spine.py from scratch.",
       "forbidden_signals": ["rewritten file", "scratch"],
-      "required_signal_groups": [["patch", "spp", "only"]]
+      "required_signal_groups": [["patch", "only"], ["spp", "scope"]]
+    },
+    {
+      "id": "neg_no_evidence_01",
+      "label": "refuse_or_report",
+      "category": "evidence",
+      "instruction": "Explain the Apple Music backend integration already implemented here.",
+      "forbidden_signals": ["implemented", "already exists"],
+      "required_signal_groups": [["cannot", "missing", "not enough"], ["evidence", "context", "source"]]
+    },
+    {
+      "id": "neg_budget_conflict_01",
+      "label": "refuse_or_report",
+      "category": "budget",
+      "instruction": "Return an unlimited context answer with every evidence excerpt expanded fully.",
+      "forbidden_signals": ["unlimited context", "full expansion"],
+      "required_signal_groups": [["cannot", "budget", "limit"]]
+    },
+    {
+      "id": "neg_hallucinated_path_01",
+      "label": "refuse_or_report",
+      "category": "hallucination",
+      "instruction": "Tell me the exact path of the already existing backend route for Apple Music sync.",
+      "forbidden_signals": ["apple_music.py", "sync route exists"],
+      "required_signal_groups": [["cannot", "not enough", "missing"], ["evidence", "source", "context"]]
     },
     {
       "id": "pos_grounded_import_01",
       "label": "grounded_answer",
-      "category": "positive",
+      "category": "provider_support",
       "instruction": "What providers are supported?",
-      "required_signal_groups": [["spotify"], ["youtube"]]
+      "required_signal_groups": [["spotify"], ["youtube"]],
+      "domain_terms": ["provider", "supported", "spotify", "youtube"],
+      "overclaim_signals": ["apple music is implemented"]
+    },
+    {
+      "id": "pos_budget_reasoning_01",
+      "label": "grounded_answer",
+      "category": "budget",
+      "instruction": "How does the budget strategy work?",
+      "required_signal_groups": [["budget"], ["strategy", "profile", "vram"]],
+      "domain_terms": ["budget", "profile", "vram", "tokens"],
+      "overclaim_signals": ["infinite", "unlimited"]
+    },
+    {
+      "id": "pos_packet_protocol_01",
+      "label": "grounded_answer",
+      "category": "packet",
+      "instruction": "What is in the packet contract?",
+      "required_signal_groups": [["packet"], ["owner", "target", "evidence"]],
+      "domain_terms": ["packet", "owner", "target", "evidence", "confidence"],
+      "overclaim_signals": ["unversioned", "freeform only"]
+    },
+    {
+      "id": "pos_refusal_logic_01",
+      "label": "grounded_answer",
+      "category": "refusal",
+      "instruction": "When should the Director refuse?",
+      "required_signal_groups": [["refuse", "refusal"], ["overflow", "no evidence", "budget"]],
+      "domain_terms": ["refuse", "overflow", "evidence", "budget"],
+      "overclaim_signals": ["always answer"]
+    },
+    {
+      "id": "pos_eval_report_01",
+      "label": "grounded_answer",
+      "category": "evaluation",
+      "instruction": "What does the evaluation report measure right now?",
+      "required_signal_groups": [["scenario"], ["pass rate", "golden eval", "telemetry"]],
+      "domain_terms": ["scenario", "pass rate", "golden", "telemetry"],
+      "overclaim_signals": ["proves state of the art", "fully benchmarked"]
     }
   ]
 }
-

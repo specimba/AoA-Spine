@@ -1,0 +1,67 @@
+{
+  "benchmark_name": "aoa_spine_local_benchmark",
+  "version": "1.0",
+  "tasks": [
+    {
+      "task_id": "task_provider_support",
+      "split": "dev",
+      "category": "provider_support",
+      "repo_id": "aoa-spine",
+      "prompt": "What providers are supported?",
+      "expected_status": "SUCCESS",
+      "required_evidence": ["provider support", "spotify", "youtube"],
+      "forbidden_evidence": ["apple music implemented"],
+      "hardware_profiles": ["4gb", "8gb", "cpu-only"],
+      "primary_metric": "grounded_answer"
+    },
+    {
+      "task_id": "task_budget_strategy",
+      "split": "dev",
+      "category": "budget",
+      "repo_id": "aoa-spine",
+      "prompt": "How does the budget strategy work?",
+      "expected_status": "SUCCESS",
+      "required_evidence": ["budget", "vram", "profile"],
+      "forbidden_evidence": ["unlimited"],
+      "hardware_profiles": ["4gb", "8gb", "16gb"],
+      "primary_metric": "grounded_answer"
+    },
+    {
+      "task_id": "task_packet_contract",
+      "split": "dev",
+      "category": "packet",
+      "repo_id": "aoa-spine",
+      "prompt": "What is in the packet contract?",
+      "expected_status": "SUCCESS",
+      "required_evidence": ["packet", "owner", "target", "evidence"],
+      "forbidden_evidence": ["freeform only"],
+      "hardware_profiles": ["4gb", "8gb"],
+      "primary_metric": "grounded_answer"
+    },
+    {
+      "task_id": "task_empty_store_refusal",
+      "split": "test",
+      "category": "negative_control",
+      "repo_id": "aoa-spine",
+      "prompt": "What providers are supported?",
+      "expected_status": "NO_EVIDENCE",
+      "required_evidence": [],
+      "forbidden_evidence": ["invented answer"],
+      "hardware_profiles": ["4gb", "8gb"],
+      "primary_metric": "status_correct"
+    },
+    {
+      "task_id": "task_budget_precheck_refusal",
+      "split": "test",
+      "category": "negative_control",
+      "repo_id": "aoa-spine",
+      "prompt": "token token token token token",
+      "expected_status": "REFUSED_PRECHECK",
+      "required_evidence": [],
+      "forbidden_evidence": ["retrieval_executed"],
+      "hardware_profiles": ["micro"],
+      "primary_metric": "status_correct",
+      "notes": "The actual request is expanded by the evaluator for overflow simulation."
+    }
+  ]
+}

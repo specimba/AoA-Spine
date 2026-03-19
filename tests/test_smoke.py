@@ -79,8 +79,9 @@ def test_golden_eval_runs():
         "pos_grounded_import_01": "Spotify and YouTube are supported.",
     }
     result = run_golden_eval(dataset, predictions)
-    assert result["total"] == 3
+    assert result["total"] >= 10
     assert result["passed"] >= 2
+    assert "results" in result
 
 
 def test_hashing_embedder_preserves_local_similarity():
@@ -145,3 +146,5 @@ def test_eval_runner_produces_summary(tmp_path: Path):
     )
     assert report["report_version"] == "1.0"
     assert "golden_eval" in report
+    assert "task_artifacts" in report
+    assert report["task_artifacts"]
