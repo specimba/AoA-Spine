@@ -20,9 +20,9 @@ AoA Spine should be built in seven layers.
 - dedup and upsert
 
 3. Retrieval Layer
-- lexical retrieval
+- stronger lexical retrieval baseline
 - dense retrieval
-- fusion
+- fusion with reciprocal-rank as the preferred default
 - reranking
 - plan-aware filtering
 
@@ -83,3 +83,10 @@ The highest-upside system technique is evidence compression routing:
 - reuse packets across agent lanes
 - expand only when needed
 - count packet cost against the runtime budget
+
+## Architecture Constraint
+
+AoA Spine should prefer the lowest-complexity retrieval architecture that meets
+measured quality targets. Higher-complexity additions such as late interaction,
+sparse neural retrieval, or aggressive index compression should remain opt-in
+until the evaluation harness demonstrates a real need.

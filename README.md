@@ -27,6 +27,7 @@ Start with these docs:
 - [System Architecture](C:\Users\speci.000\Documents\AoA-v2-Surgical-Spine\docs\SYSTEM_ARCHITECTURE.md)
 - [Roadmap](C:\Users\speci.000\Documents\AoA-v2-Surgical-Spine\docs\ROADMAP.md)
 - [Implementation Order](C:\Users\speci.000\Documents\AoA-v2-Surgical-Spine\docs\IMPLEMENTATION_ORDER.md)
+- [Decision Record](C:\Users\speci.000\Documents\AoA-v2-Surgical-Spine\docs\DECISIONS.md)
 - [System Card](C:\Users\speci.000\Documents\AoA-v2-Surgical-Spine\docs\SYSTEM_CARD.md)
 - [Evaluation Card](C:\Users\speci.000\Documents\AoA-v2-Surgical-Spine\docs\EVALUATION_CARD.md)
 

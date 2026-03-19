@@ -26,11 +26,14 @@ Build:
 Goal: make retrieval worth trusting.
 
 Build:
-- code-aware lexical retrieval
-- dense retrieval with a real compact model
-- reciprocal-rank or similar fusion
+- stronger lexical retrieval baseline first
+- dense retrieval with a real compact model after the lexical baseline is measured
+- reciprocal-rank fusion after both lexical and dense rankers are independently credible
 - budget-gated reranking
 - structural chunking for code and docs
+- explicit benchmark comparison against the current heuristic stack
+- revisit Matryoshka-style compact embeddings only after the baseline is benchmarked
+- defer ColBERTv2 until the benchmark shows simpler retrieval is insufficient
 
 ## Phase 3: Low-VRAM Intelligence
 
@@ -53,6 +56,8 @@ Build:
 - one-owner slice routing
 - confidence and sufficiency signals
 - packet-first worker execution
+- packet schema versioning
+- packet replay and artifact persistence
 
 ## Phase 5: Evaluation and Proof
 
@@ -60,10 +65,17 @@ Goal: make claims defensible.
 
 Build:
 - benchmark suite
-- retrieval metrics
+- retrieval metrics such as Recall@k, MRR, and nDCG
 - grounding metrics
 - telemetry capture
 - ablation reports
+- reasoning-intensive retrieval tasks in addition to direct lookup tasks
+- baseline-first comparison before advanced retrieval additions
+- task-level raw run artifacts
+- benchmark manifests with hashes and environment capture
+- negative controls and impossible-task refusals
+- human-audited sample sets
+- plotting-ready report tables and variance summaries
 
 ## Phase 6: Product Release
 
@@ -76,3 +88,5 @@ Build:
 - install path
 - demo surface
 - dataset and eval artifact publication strategy
+- explicit claim boundaries tied to the current evaluation card
+- release proof bundle with benchmark summary, manifest, and raw artifact references
