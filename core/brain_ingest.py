@@ -19,6 +19,21 @@ def chunk_text(text: str, max_chars: int = 1200, overlap: int = 150) -> list[str
     return chunks
 
 
+def classify_source_area(path: Path) -> str:
+    normalized = {part.lower() for part in path.parts}
+    if "tests" in normalized:
+        return "tests"
+    if "data" in normalized:
+        return "data"
+    if path.name in {"pyproject.toml", "pytest.ini", ".editorconfig"}:
+        return "config"
+    if path.suffix.lower() in {".md", ".txt"}:
+        return "docs"
+    if "core" in normalized or path.suffix.lower() in {".py", ".js", ".jsx", ".ts", ".tsx"}:
+        return "runtime"
+    return "other"
+
+
 def build_documents(root: Path) -> list[BrainDocument]:
     documents: list[BrainDocument] = []
     for path in root.rglob("*"):
@@ -28,17 +43,29 @@ def build_documents(root: Path) -> list[BrainDocument]:
             continue
 
         text = path.read_text(encoding="utf-8", errors="ignore")
-        for index, chunk in enumerate(chunk_text(text)):
-            doc_id = hashlib.sha256(f"{path.relative_to(root)}::{index}".encode()).hexdigest()[:12]
+        relative_path = path.relative_to(root)
+        chunks = chunk_text(text)
+        chunk_stride = 1200 - 150
+        source_area = classify_source_area(relative_path)
+        for index, chunk in enumerate(chunks):
+            doc_id = hashlib.sha256(f"{relative_path}::{index}".encode()).hexdigest()[:12]
+            chunk_start = index * chunk_stride
+            chunk_end = min(chunk_start + len(chunk), len(text))
             documents.append(
                 BrainDocument(
                     doc_id=doc_id,
                     text=chunk,
-                    source_path=str(path.relative_to(root)),
+                    source_path=str(relative_path),
                     source_kind="code" if path.suffix.lower() in {".py", ".js", ".ts", ".tsx"} else "doc",
                     title=path.name,
-                    metadata={"chunk": index},
+                    source_area=source_area,
+                    metadata={
+                        "chunk": index,
+                        "chunk_count": len(chunks),
+                        "chunk_start": chunk_start,
+                        "chunk_end": chunk_end,
+                        "file_ext": path.suffix.lower(),
+                    },
                 )
             )
     return documents
-
