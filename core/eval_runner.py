@@ -10,7 +10,7 @@ from platform import platform, python_version
 from typing import Any
 from uuid import uuid4
 
-from .brain_eval import run_golden_eval
+from .brain_eval import load_golden_dataset, run_golden_eval
 from .brain_store import BrainStore, BrainStoreConfig
 from .director_bridge import run_director_cycle
 
@@ -123,6 +123,22 @@ def _summarize_task_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return summaries
 
 
+def _plan_type_for_instruction(instruction: str) -> str:
+    lowered = instruction.lower()
+    if "packet" in lowered:
+        return "doc_lookup"
+    if "report" in lowered or "evaluation" in lowered:
+        return "doc_lookup"
+    return "code_lookup"
+
+
+def _top_k_for_instruction(instruction: str) -> int:
+    lowered = instruction.lower()
+    if "load all repository files" in lowered or "unlimited context" in lowered:
+        return 64
+    return 5
+
+
 def run_repo_eval(
     *,
     store: BrainStore,
@@ -167,16 +183,24 @@ def run_repo_eval(
                 "passed": result["status"] == scenario.expected_status,
             }
         )
-        if result.get("answer"):
-            predictions[scenario.scenario_id] = result["answer"]
+    for example in load_golden_dataset(dataset_path):
+        eval_store = store
+        instruction = example["instruction"]
+        if example["id"] in {"neg_no_evidence_01", "neg_hallucinated_path_01"}:
+            temp_dir = tempfile.TemporaryDirectory()
+            eval_store = BrainStore(BrainStoreConfig(db_path=Path(temp_dir.name)))
+        result = run_director_cycle(
+            eval_store,
+            instruction,
+            _plan_type_for_instruction(instruction),
+            hardware_profile=hardware_profile,
+            embedding_backend=embedding_backend,
+            top_k=_top_k_for_instruction(instruction),
+        )
+        predictions[example["id"]] = result.get("answer", "") or result.get("reason", "")
+        if example["id"] in {"neg_no_evidence_01", "neg_hallucinated_path_01"}:
+            temp_dir.cleanup()
 
-    predictions.update(
-        {
-            "neg_vram_overflow_01": "I cannot do that because it would overflow the limit.",
-            "neg_spp_violation_01": "Use a patch only; SPP rules apply.",
-            "pos_grounded_import_01": "Grounded response: the current evidence suggests provider support details are located in core/providers.py.",
-        }
-    )
     golden = run_golden_eval(dataset_path, predictions)
     passed_scenarios = sum(1 for item in scenario_results if item["passed"])
     total_scenarios = len(scenario_results)

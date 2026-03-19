@@ -5,6 +5,12 @@ from pathlib import Path
 from typing import Any
 
 
+def load_golden_dataset(dataset_path: Path) -> list[dict[str, Any]]:
+    with open(dataset_path, "r", encoding="utf-8") as handle:
+        data = json.load(handle)
+    return list(data.get("seeds", []))
+
+
 def score_response(example: dict[str, Any], response_text: str) -> dict[str, Any]:
     lowered = response_text.lower().strip()
     checks = {
@@ -18,8 +24,7 @@ def score_response(example: dict[str, Any], response_text: str) -> dict[str, Any
 
 
 def run_golden_eval(dataset_path: Path, predictions: dict[str, str]) -> dict[str, Any]:
-    with open(dataset_path, "r", encoding="utf-8") as handle:
-        data = json.load(handle)
+    data = {"seeds": load_golden_dataset(dataset_path)}
     results = [
         {"id": seed["id"], **score_response(seed, predictions.get(seed["id"], ""))}
         for seed in data.get("seeds", [])
